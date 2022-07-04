@@ -1,11 +1,10 @@
-
-
-[
+{
+  "saved_cars": [
   {
     "img":"assets/img/jpg/captiva.jpg",
     "year":"2014",
     "name": "Chevrolet Captiva",
-    "speed": "100k Mi",
+    "speed": "100k Km",
     "color": "White",
     "price": "$ 24,555",
     "location": "Andijan"
@@ -64,4 +63,37 @@
     "price": "$ 39,750",
     "location": "Tashkent"
   }
-]
+],
+  "main_cars": [
+    {
+      "carPicture" : "assets/img/png/car1.png",
+      "categoryName": "Ford",
+      "carQuantity": "245 cars",
+      "carColor": "#FF0000"
+    },
+    {
+      "carPicture" : "assets/img/png/car2Toyota.png",
+      "categoryName": "Toyota",
+      "carQuantity": "808 cars",
+      "carColor": "#A020F0"
+    },
+    {
+      "carPicture" :  "assets/img/png/car3Tesla.png",
+      "categoryName": "Tesla",
+      "carQuantity":  "1250 cars",
+      "carColor":     "#FFFF00"
+    },
+    {
+      "carPicture" :  "assets/img/png/car4Bmw.png",
+      "categoryName": "BMW",
+      "carQuantity":  "189 cars",
+      "carColor":     "#0000FF"
+    },
+    {
+      "carPicture" :  "assets/img/png/car5Chevro.png",
+      "categoryName": "Chevrolet",
+      "carQuantity":  "2487 cars",
+      "carColor":     "#953553"
+    }
+  ]
+}

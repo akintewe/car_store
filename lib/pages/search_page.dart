@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'dart:ui';
+
+import 'package:car_marketplace_ui/models/filter_model.dart';
+import 'package:car_marketplace_ui/models/saved_car_model.dart';
+import 'package:car_marketplace_ui/widgets/popup_nested_menu.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import '../widgets/colors.dart';
-import '../widgets/single_car.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({
@@ -16,334 +16,273 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  String initialFilter = 'Price';
+  int _current = 0;
+  final _nameFilterController =
+      TextEditingController(text: 'Chevrolet Captive');
   @override
   Widget build(BuildContext context) {
-    return Stack(children: [
-      Positioned(
-        top: 0.0,
-        left: 0.0,
-        right: 0.0,
-        bottom: MediaQuery.of(context).size.height * 0.45,
-        child: Container(
-          height: MediaQuery.of(context).size.height * 0.55,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF3D41B6),
-                Color(0xFF5B47EC),
+    final screenSize = MediaQuery.of(context).size;
+    final List<FilterModel> carFilterModels = [
+      FilterModel(title: 'price', usbFilters: [
+        FilterModel(title: 'low to high'),
+        FilterModel(title: 'high to low'),
+      ]),
+      FilterModel(title: 'speed', usbFilters: [
+        FilterModel(title: 'low to high'),
+        FilterModel(title: 'high to low'),
+      ])
+    ];
+/*    final List<Widget> sliderItems = [
+      _buildSliderItem(screenSize: screenSize),
+      _buildSliderItem(screenSize: screenSize),
+      _buildSliderItem(screenSize: screenSize),
+      _buildSliderItem(screenSize: screenSize),
+      _buildSliderItem(screenSize: screenSize),
+    ];*/
+    return FutureBuilder(
+      future: DefaultAssetBundle.of(context)
+          .loadString(('assets/json/car_list.json')),
+      builder: (_, snapshot) {
+        if (snapshot.data == null) {
+          return const CircularProgressIndicator();
+        }
+        var result =
+            json.decode(snapshot.data.toString()) as Map<String, dynamic>;
+        final List savedCars = result['saved_cars'];
+        final List<SavedCarModel> savedCarModels =
+            savedCars.map((e) => SavedCarModel.fromJson(e)).toList();
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10.0),
+          child: SizedBox(
+            height: screenSize.height * 0.75,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'FIND',
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption!
+                      .copyWith(color: Colors.grey),
+                ),
+                const SizedBox(
+                  height: 8,
+                ),
+                SizedBox(
+                  width: screenSize.width * 0.5,
+                  child: TextFormField(
+                    controller: _nameFilterController,
+                    decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(vertical: 3),
+                      isDense: true,
+                      enabledBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(
+                          color: Colors.pinkAccent,
+                          width: 2,
+                        ),
+                      ),
+                      focusedBorder: UnderlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.pinkAccent, width: 2)),
+                      disabledBorder: UnderlineInputBorder(
+                          borderSide:
+                              BorderSide(color: Colors.pinkAccent, width: 2)),
+                    ),
+                    textInputAction: TextInputAction.search,
+                    onFieldSubmitted: (value) {
+                      for (var element in savedCarModels) {
+                        if (element.name == value) {
+                          _current = savedCarModels.indexOf(element);
+                        }
+                      }
+                      setState(() {});
+                    },
+                    style: Theme.of(context).textTheme.headline6!.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                const SizedBox(
+                  height: 15,
+                ),
+                Text(
+                  'SORT BY',
+                  style: Theme.of(context)
+                      .textTheme
+                      .caption!
+                      .copyWith(color: Colors.grey),
+                ),
+                PopupNestedMenu(filterModel: carFilterModels),
+                const SizedBox(
+                  height: 15,
+                ),
+                Expanded(
+                  child: CarouselSlider.builder(
+                    options: CarouselOptions(
+                        height: screenSize.height * 0.5,
+                        autoPlay: true,
+                        autoPlayCurve: Curves.easeInExpo,
+                        enableInfiniteScroll: true,
+                        aspectRatio: 1.5,
+                        autoPlayAnimationDuration: const Duration(seconds: 1),
+                        autoPlayInterval: const Duration(seconds: 2),
+                        enlargeCenterPage: true,
+                        pageSnapping: true,
+                        initialPage: _current,
+                        onPageChanged: (index, _) {
+                          setState(() {
+                            _current = index;
+                          });
+                        }),
+                    itemCount: savedCarModels.length,
+                    itemBuilder:
+                        (BuildContext context, int index, int realIndex) =>
+                            _buildSliderItem(
+                                screenSize: screenSize,
+                                index: index,
+                                car: savedCarModels[index]),
+                  ),
+                )
               ],
             ),
-            borderRadius: BorderRadius.only(
-              bottomLeft: Radius.elliptical(
-                450,
-                220,
-              ),
-              bottomRight: Radius.elliptical(450, 300),
-            ),
           ),
-        ),
-      ),
-      Positioned(
-        top: MediaQuery.of(context).size.height * 0.06,
-        left: 0.0,
-        right: 0.0,
-        bottom: MediaQuery.of(context).size.height * 0.88,
-        child: Container(
-          padding: const EdgeInsets.only(
-            left: 25.0,
-            right: 25.0,
-          ),
-          child: Row(
-            children: const [
-              Icon(
-                FontAwesomeIcons.bars,
-                color: Colors.white,
-              ),
-              SizedBox(
-                width: 50.0,
-              ),
+        );
+      },
+    );
+  }
+
+  Widget _buildSliderItem(
+          {required Size screenSize,
+          required int index,
+          required SavedCarModel car}) =>
+      SizedBox(
+        width: screenSize.width * 0.75,
+        height: screenSize.height * 0.5,
+        child: Card(
+          color: Colors.white,
+          clipBehavior: Clip.hardEdge,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            children: [
               Expanded(
-                child: Center(
-                  child: Text(
-                    "SEARCH",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w100,
-                    ),
+                child: Container(
+                  clipBehavior: Clip.hardEdge,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Image.asset(
+                    car.img,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
                   ),
                 ),
               ),
-              SizedBox(
-                width: 50.0,
-              ),
-              Icon(
-                FontAwesomeIcons.circleUser,
-                color: Colors.white,
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      car.year,
+                      style: Theme.of(context)
+                          .textTheme
+                          .caption!
+                          .copyWith(color: Colors.grey),
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          car.name,
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline6!
+                              .copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w500),
+                        ),
+                        Text(
+                          car.price,
+                          style: Theme.of(context).textTheme.caption!.copyWith(
+                              color: Colors.black, fontWeight: FontWeight.w500),
+                        )
+                      ],
+                    ),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: MaterialButton(
+                              color: Colors.grey[200],
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              child: FittedBox(
+                                child: Text(
+                                  car.speed,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(color: Colors.black),
+                                ),
+                                fit: BoxFit.contain,
+                              ),
+                              onPressed: () {}),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: MaterialButton(
+                              color: Colors.grey[200],
+                              child: FittedBox(
+                                child: Text(
+                                  car.color,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium!
+                                      .copyWith(color: Colors.black),
+                                ),
+                                fit: BoxFit.contain,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              onPressed: () {}),
+                        ),
+                        const SizedBox(
+                          width: 10,
+                        ),
+                        Expanded(
+                          child: MaterialButton(
+                              color: Colors.grey[200],
+                              child: FittedBox(
+                                  child: Text(
+                                    car.location,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium!
+                                        .copyWith(color: Colors.black),
+                                  ),
+                                  fit: BoxFit.contain),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20)),
+                              onPressed: () {}),
+                        ),
+                      ],
+                    )
+                  ],
+                ),
               ),
             ],
           ),
         ),
-      ),
-      Positioned(
-        top: MediaQuery.of(context).size.height * 0.14,
-        left: 25.0,
-        right: 0.0,
-        bottom: 0.0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "FIND",
-              style: TextStyle(
-                fontSize: 12.0,
-                color: AppColor.heartGreyColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(
-              height: 10.0,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppColor.heartRedColor,
-                    width: 3.0,
-                  ),
-                ),
-              ),
-              child: const Text(
-                "Chevrolet Captive",
-                style: TextStyle(
-                  fontSize: 24.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(
-              height: 20.0,
-            ),
-            Text(
-              "SORT BY",
-              style: TextStyle(
-                fontSize: 12.0,
-                color: AppColor.heartGreyColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(
-              height: 10.0,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(
-                    color: AppColor.heartRedColor,
-                    width: 3.0,
-                  ),
-                ),
-              ),
-              child: const Text(
-                "Price, Low to High",
-                style: TextStyle(
-                  fontSize: 24.0,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      Positioned(
-        top: MediaQuery.of(context).size.height * 0.35,
-        left: 0.0,
-        right: 0.0,
-        bottom: MediaQuery.of(context).size.height * 0.15,
-        child: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(
-            dragDevices: {
-              PointerDeviceKind.touch,
-              PointerDeviceKind.mouse,
-            },
-          ),
-          child: FutureBuilder(
-              future: DefaultAssetBundle.of(context)
-                  .loadString('assets/json/car_list.json'),
-              builder: (context, snapshot) {
-                // Decode the JSON
-                List newData = json.decode(snapshot.data.toString());
-
-                return CarouselSlider.builder(
-                  itemCount: newData.length,
-                  itemBuilder: (context, index, id) {
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (BuildContext context) =>
-                                    SinglePage(index: index),
-                              ));
-                        });
-                      },
-                      child: Container(
-                        width: MediaQuery.of(context).size.width * 0.8,
-                        height: MediaQuery.of(context).size.height * 0.2,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(
-                            25.0,
-                          ),
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: MediaQuery.of(context).size.width * 0.8,
-                              height: MediaQuery.of(context).size.height * 0.33,
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(newData[index]['img']),
-                                  fit: BoxFit.cover,
-                                ),
-                                borderRadius: BorderRadius.circular(
-                                  25.0,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 15.0,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20.0,
-                              ),
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  newData[index]['year'],
-                                  style: TextStyle(
-                                    color: AppColor.secondTextColor,
-                                    fontSize: 16.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10.0,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    newData[index]['name'],
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                      color: AppColor.mainTextColor,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  Expanded(
-                                    child: Container(),
-                                  ),
-                                  Text(
-                                    newData[index]['price'],
-                                    style: TextStyle(
-                                      fontSize: 16.0,
-                                      color: AppColor.mainTextColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(
-                              height: 10.0,
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 15.0,
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    height: 40.0,
-                                    width: 100.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      color: AppColor.backgroundColor,
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        newData[index]['speed'],
-                                        style: const TextStyle(
-                                          fontSize: 14.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  Expanded(
-                                    child: Container(),
-                                  ),
-                                  Container(
-                                    height: 40.0,
-                                    width: 100.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      color: AppColor.backgroundColor,
-                                    ),
-                                    child: Center(
-                                      child: Text(newData[index]['color']),
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10.0,
-                                  ),
-                                  Expanded(
-                                    child: Container(),
-                                  ),
-                                  Container(
-                                    height: 40.0,
-                                    width: 100.0,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                      color: AppColor.backgroundColor,
-                                    ),
-                                    child: Center(
-                                      child: Text(newData[index]['location']),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                  options: CarouselOptions(
-                    enlargeCenterPage: true,
-                    height: MediaQuery.of(context).size.height,
-                    autoPlayInterval: const Duration(seconds: 3),
-                    reverse: false,
-                    aspectRatio: 5.0,
-                  ),
-                );
-              }),
-        ),
-      ),
-    ]);
-  }
+      );
 }
