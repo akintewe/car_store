@@ -43,7 +43,7 @@ class _MainPageState extends State<MainPage> {
                 borderRadius: BorderRadiusDirectional.only(
                     bottomStart: Radius.elliptical(300, 100),
                     bottomEnd: Radius.elliptical(750, 275)),
-                color: Colors.indigoAccent,
+                color: Colors.deepPurple,
               ),
             ),
           ),
